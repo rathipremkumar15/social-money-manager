@@ -1,28 +1,18 @@
 "use client";
 
 import { useState } from "react";
-
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-type Opportunity = { title: string; category: string; description: string; difficulty: number; startupCostInr: number; scalability: number; score: number };
-type PrivacyResult = { safeToPublish: boolean; findings: { type: string; severity: string; message: string }[] };
-
-export default function Home() {
-  const [query, setQuery] = useState("");
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [topic, setTopic] = useState("AI content creation");
-  const [ideas, setIdeas] = useState<string[]>([]);
-  const [text, setText] = useState("");
-  const [privacy, setPrivacy] = useState<PrivacyResult | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function findOpportunities() { setLoading(true); try { const r = await fetch(`${API}/api/v1/opportunities?q=${encodeURIComponent(query)}`); setOpportunities(await r.json()); } finally { setLoading(false); } }
-  async function generateIdeas() { const r = await fetch(`${API}/api/v1/content/ideas`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topic }) }); setIdeas((await r.json()).ideas); }
-  async function privacyCheck() { const r = await fetch(`${API}/api/v1/privacy/check`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) }); setPrivacy(await r.json()); }
-
-  return <main style={{ maxWidth: 1100, margin: "0 auto", padding: 32, fontFamily: "system-ui" }}>
-    <header><p>SM MANAGER · MVP</p><h1>Social Money Manager</h1><p>Research opportunities, create content ideas, and protect personal information before publishing.</p></header>
-    <section style={{ marginTop: 32 }}><h2>💰 Opportunity Finder</h2><div style={{ display: "flex", gap: 8 }}><input value={query} onChange={e => setQuery(e.target.value)} placeholder="e.g. AI, service, digital product" style={{ flex: 1, padding: 12 }} /><button onClick={findOpportunities} disabled={loading}>{loading ? "Searching…" : "Find ideas"}</button></div><div style={{ display: "grid", gap: 12, marginTop: 16 }}>{opportunities.map(o => <article key={o.title} style={{ border: "1px solid #ddd", borderRadius: 10, padding: 16 }}><strong>{o.title}</strong><p>{o.description}</p><small>{o.category} · Difficulty {o.difficulty}/5 · Starting cost ₹{o.startupCostInr.toLocaleString("en-IN")} · Score {o.score}/100</small></article>)}</div></section>
-    <section style={{ marginTop: 40 }}><h2>📝 Content Ideas</h2><div style={{ display: "flex", gap: 8 }}><input value={topic} onChange={e => setTopic(e.target.value)} style={{ flex: 1, padding: 12 }} /><button onClick={generateIdeas}>Generate</button></div><ul>{ideas.map(i => <li key={i} style={{ marginTop: 8 }}>{i}</li>)}</ul></section>
-    <section style={{ marginTop: 40 }}><h2>🛡️ Privacy Guard</h2><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Paste a post/caption here to scan for email, phone numbers, or credential markers…" rows={5} style={{ width: "100%", padding: 12 }} /><button onClick={privacyCheck} style={{ marginTop: 8 }}>Check before publishing</button>{privacy && <div style={{ marginTop: 12, padding: 16, border: "1px solid #ddd", borderRadius: 10 }}><strong>{privacy.safeToPublish ? "✅ No detected privacy risks" : "⚠️ Review before publishing"}</strong>{privacy.findings.map(f => <p key={f.type}>{f.severity}: {f.message}</p>)}</div>}</section>
-  </main>;
+type Opportunity={title:string;category:string;description:string;difficulty:number;startupCostInr:number;scalability:number;score:number};
+type PrivacyResult={safeToPublish:boolean;findings:{type:string;severity:string;message:string}[]};
+export default function Home(){
+ const[q,setQ]=useState("");const[ops,setOps]=useState<Opportunity[]>([]);const[topic,setTopic]=useState("AI content creation");const[ideas,setIdeas]=useState<string[]>([]);const[text,setText]=useState("");const[privacy,setPrivacy]=useState<PrivacyResult|null>(null);const[goal,setGoal]=useState("Build an online income stream with social media");const[plan,setPlan]=useState<string[]>([]);const[busy,setBusy]=useState(false);
+ async function find(){setBusy(true);try{setOps(await (await fetch(`${API}/api/v1/opportunities?q=${encodeURIComponent(q)}`)).json())}finally{setBusy(false)}}
+ async function generate(){setIdeas((await (await fetch(`${API}/api/v1/content/ideas`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic})})).json()).ideas)}
+ async function check(){setPrivacy(await (await fetch(`${API}/api/v1/privacy/check`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})})).json())}
+ async function agent(){setPlan((await (await fetch(`${API}/api/v1/agent/plan`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({goal})})).json()).plan)}
+ const box={border:"1px solid #ddd",borderRadius:12,padding:20,marginTop:24};return <main style={{maxWidth:1100,margin:"0 auto",padding:32,fontFamily:"system-ui"}}><p>SM MANAGER · FIRST MVP</p><h1>Social Money Manager</h1><p>Your control center for online opportunities, social content and privacy.</p>
+ <section style={box}><h2>🧠 AI Agent Planner</h2><div style={{display:"flex",gap:8}}><input value={goal} onChange={e=>setGoal(e.target.value)} style={{flex:1,padding:12}}/><button onClick={agent}>Build plan</button></div>{plan.length>0&&<ol>{plan.map(x=><li key={x} style={{marginTop:8}}>{x}</li>)}</ol>}</section>
+ <section style={box}><h2>💰 Opportunity Finder</h2><div style={{display:"flex",gap:8}}><input value={q} onChange={e=>setQ(e.target.value)} placeholder="AI, service, affiliate…" style={{flex:1,padding:12}}/><button onClick={find} disabled={busy}>{busy?"Searching…":"Find opportunities"}</button></div><div style={{display:"grid",gap:12,marginTop:16}}>{ops.map(o=><article key={o.title} style={{border:"1px solid #eee",padding:14,borderRadius:8}}><strong>{o.title}</strong><p>{o.description}</p><small>{o.category} · Cost ₹{o.startupCostInr.toLocaleString("en-IN")} · Scale {o.scalability}/5 · Score {o.score}/100</small></article>)}</div></section>
+ <section style={box}><h2>📝 Content Ideas</h2><div style={{display:"flex",gap:8}}><input value={topic} onChange={e=>setTopic(e.target.value)} style={{flex:1,padding:12}}/><button onClick={generate}>Generate</button></div><ul>{ideas.map(i=><li key={i} style={{marginTop:8}}>{i}</li>)}</ul></section>
+ <section style={box}><h2>🛡️ Privacy Guard</h2><textarea value={text} onChange={e=>setText(e.target.value)} rows={5} placeholder="Paste a caption before publishing…" style={{width:"100%",padding:12}}/><button onClick={check} style={{marginTop:8}}>Check privacy</button>{privacy&&<div style={{marginTop:12}}><strong>{privacy.safeToPublish?"✅ No detected risks":"⚠️ Review before publishing"}</strong>{privacy.findings.map(f=><p key={f.type}>{f.severity}: {f.message}</p>)}</div>}</section></main>;
 }
